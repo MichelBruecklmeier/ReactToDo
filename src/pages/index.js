@@ -1,115 +1,92 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import {useState, useEffect } from 'react';
+import TaskList from './TaskList.js';
+import {toggleData, getData, addData,deleteData} from './DataBase.js';
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+function App(){
+    //Task data
+    const [tasks, setTask] = useState([]);
+    const [input,setInput] = useState('');
+    const [title,setTitle] = useState('');
+    //Use effect to only make it run one time to load data
+    useEffect(() => {
+      //Recomended i wrote a async function within params so it wont return anything
+      async function loadData(){
+        const data = await getData();
+        console.log(data.size);
+        const taskList = [];
+        data.forEach((d) => {taskList.push(d.data())});
+        taskList.sort((a,b) => a.id-b.id)
+        setTask(taskList);
+      }
+      loadData();
+    },[]);
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+    //addTask
+    const addTask = (e) => {
+      //prevent default case
+      e.preventDefault();
+      //now we prevent empty string
+      if (input.trim() === "") setInput('none');
+      if (title.trim() === "") return;
+      const task = { id: Date.now(),title:title, text: input, done: false };
+      setTask([...tasks, task]);
+      addData(task);
+      setInput("");
+      setTitle("");
+    }
+    //To handle deletion
+    const deleteTask = (id) => {
+        //just filters thru all tasks and sees if the id matches if it does then get rid of it
+        setTask(tasks.filter(t => t.id !== id));
+        deleteData(id);
 
-export default function Home() {
-  return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/pages/index.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    }
+    const toggleTask = (id) => {
+        console.log(`toggling task ${id}`)
+        //Checks to see if the id matches if it does then just do not task.dome if its not the right id then just do the previous value or unchanged
+        setTask(tasks.map(task => task.id === id ? {...task, done: !task.done} : task))
+        toggleData(tasks.find(t => t.id===id));
+    }
+
+    return (
+        <div className='mx-auto w-fit'>
+            <h1 className='text-center text-6xl'>
+              To do
+              </h1><br/>
+              <div className='flex justify-center'>
+            <form onSubmit={(e)=> addTask(e)
+                  }>
+                    
+                <Input
+                  
+                  type='text'
+                  value={title}
+                  onChange = { (e) => setTitle(e.target.value)}
+                  placeholder = "Add Task Title"
+                  className="text-4xl p-4"
+                />
+                <Input
+                        
+                       type='text'
+                       value={input}
+                       onChange ={ (e) => setInput(e.target.value)}
+                       placeholder="Add Task Description"
+                       />
+                
+                <Button 
+                  className='flex justify-center'
+                  type='submit'>
+                  Add
+                </Button>
+            </form>
+            </div>
+            <br/>
+            <TaskList tasks ={tasks} onDelete ={deleteTask} onToggle ={toggleTask}/>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
+
 }
+
+export default App;
