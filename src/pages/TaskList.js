@@ -8,6 +8,7 @@ function TaskList({tasks, onDelete, onToggle}){
         <ul class='list-disc list-inside'>
             {tasks.map((task) => (
                 <Task
+                    key = {task.id}
                     task={task}
                     onDelete={onDelete}
                     onToggle={onToggle}

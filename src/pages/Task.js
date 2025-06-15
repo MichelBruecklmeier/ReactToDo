@@ -29,7 +29,7 @@ function Task({task, onDelete, onToggle}){
             <CardFooter className='flex flex-col gap-2 px-4 pb-0'>
                 <Button
                     variant='outline'
-                    className={`w-full ${task.done? `text-white`: `text-white/50`} bg-grey-400 transition-all duration-300 hover:bg-green-500 hover:text-gray-700 border-gray-800`}
+                    className={`w-full ${task.done? `text-white`: `text-white/50`} bg-grey-400 transition-all duration-300 hover:bg-green-600 hover:text-gray-700 border-gray-800`}
                     onClick={() => onToggle(task.id)}
 
                 >
